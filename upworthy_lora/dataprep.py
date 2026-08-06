@@ -1,18 +1,4 @@
-"""Build chat-format SFT data from the archive.
-
-The assistant turn is the direct-arm JSON with the group's true CTRs min-max
-scaled to [0.05, 0.95]. Spearman only cares about the order, and the raw CTRs
-sit around 1e-2, which fights the "probability" semantics the prompt asks for;
-rescaling gives the model one consistent output convention per group.
-
-That choice is also the leading suspect for why v1 failed. Min-max forces every
-group to span the full range, so a group whose headlines were separated by pure
-sampling noise is presented to the model as a confident 0.05-vs-0.95 ordering.
-See RESULTS.md.
-
-    python -m upworthy_lora.dataprep                 # v1: every usable group
-    python -m upworthy_lora.dataprep --confident     # v2: high-confidence only
-"""
+"""Build chat-format SFT data from the archive."""
 
 from __future__ import annotations
 
@@ -39,8 +25,6 @@ def scaled_targets(ctr: tuple[float, ...]) -> list[float]:
 
 
 def build_row(group: Group) -> dict:
-    # Own namespace for the order seed, so training never sees a group in the
-    # same arrangement the evaluation will use it in.
     order = presentation_order("sft", group.group_id, group.k)
     system, user = render(group, order)
     targets = scaled_targets(tuple(group.ctr[i] for i in order))
@@ -73,10 +57,6 @@ def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     groups = load_groups(args.split)
-    # Reserve the evaluation groups first, by hash, so the held-out set is
-    # identical whether or not the confident filter is on. Filtering first would
-    # make the two arms' training sets overlap different evaluation groups and
-    # the comparison would be meaningless.
     ranked = sorted(
         groups, key=lambda g: hashlib.sha256(f"eval|{g}".encode()).hexdigest()
     )

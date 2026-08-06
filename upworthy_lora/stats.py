@@ -8,12 +8,7 @@ import numpy as np
 def macro_mean_ci(
     values: list[float], n_boot: int = 10_000, alpha: float = 0.05, seed: int = 0
 ) -> tuple[float, float, float]:
-    """Mean of per-group scores with a percentile bootstrap CI.
-
-    The group is the resampling unit. Headlines within a group are not
-    independent (they competed against each other), so bootstrapping over
-    headlines would understate the interval.
-    """
+    """Mean with percentile bootstrap CI, resampling over groups."""
     arr = np.asarray(values, dtype=float)
     arr = arr[~np.isnan(arr)]
     if arr.size == 0:

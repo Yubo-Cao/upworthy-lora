@@ -1,12 +1,4 @@
-"""The single prompt arm this study fine-tunes and evaluates.
-
-Deliberately plain. The question is whether supervised fine-tuning adds ranking
-skill, so the prompt is held fixed and unremarkable across every arm; anything
-clever here would confound the comparison.
-
-Nothing about clicks, impressions, CTR, winners or significance may appear in a
-rendered prompt. The model has to judge the headlines.
-"""
+"""Prompt template for headline click-probability estimation."""
 
 from __future__ import annotations
 

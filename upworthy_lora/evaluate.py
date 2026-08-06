@@ -1,13 +1,4 @@
-"""Score an arm on the held-out groups: macro within-group Spearman.
-
-    python -m upworthy_lora.evaluate --arm base
-    python -m upworthy_lora.evaluate --arm lora --run-name qwen3-14b-lora-v1
-
-The metric is the mean over groups of the Spearman correlation between the
-model's predicted click probabilities and the true CTRs, computed within each
-group. Correlating across groups instead would be dominated by the fact that
-some topics get clicked more than others, which is not the thing being tested.
-"""
+"""Score an arm on held-out groups (macro within-group Spearman)."""
 
 from __future__ import annotations
 
@@ -56,7 +47,6 @@ def main() -> None:
     conversations = []
     for gid in gids:
         group = groups[gid]
-        # "eval" namespace: a different arrangement from the one training saw.
         system, user = render(group, presentation_order("eval", gid, group.k))
         conversations.append(
             [{"role": "system", "content": system}, {"role": "user", "content": user}]

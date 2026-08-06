@@ -1,20 +1,4 @@
-"""LoRA SFT of Qwen3-14B on Modal, checkpointed by rank correlation.
-
-    modal run upworthy_lora/train.py --smoke            # 25 steps, smoke test
-    modal run upworthy_lora/train.py                    # v1: 2 epochs, all groups
-    modal run upworthy_lora/train.py --data-version v2 --epochs 1
-
-One A100-80GB. LoRA rank 32 on all linear layers keeps a 14B model in bf16
-inside 80GB with room for activations at batch 4 x 1024 tokens; full-parameter
-tuning at this size would need sharding across several cards and buys nothing
-here, since the question is whether the task is learnable at all.
-
-The one thing this does that the original run did not: RhoCallback generates on
-a slice of the validation groups at every eval step and reports the metric the
-study is actually scored on. In the original run eval_loss fell from 0.876 to
-0.711 while ranking quality collapsed, and nothing on the training curve gave
-that away. Selecting a checkpoint by loss here selects the worst one.
-"""
+"""LoRA SFT of Qwen3-14B on Modal."""
 
 from __future__ import annotations
 
@@ -54,11 +38,6 @@ for name in ("sft_train", "sft_val", "sft_train_v2", "sft_val_v2"):
 
 
 def _macro_rho(model, tokenizer, rows: list[dict], batch_size: int = 16) -> float:
-    """Macro within-group Spearman over validation rows, greedy decoding.
-
-    Each row carries its own gold assistant message, so the ranking target is
-    recoverable without shipping the group table to the GPU.
-    """
     import re
 
     import torch
@@ -135,7 +114,6 @@ def train(
     history: list[dict] = []
 
     class RhoCallback(TrainerCallback):
-        """Report the metric the study is scored on, not the one it optimises."""
 
         def on_evaluate(self, args, state, control, model=None, **kwargs):
             model.eval()
@@ -200,7 +178,7 @@ def generate(
     max_new_tokens: int = 220,
     batch_size: int = 32,
 ) -> list[str]:
-    """Greedy completions for (system, user) message lists. run_name=None = base model."""
+    """Greedy completions. run_name=None uses the base model."""
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
