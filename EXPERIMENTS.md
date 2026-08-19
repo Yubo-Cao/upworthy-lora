@@ -56,6 +56,26 @@ generation, reward unchanged. Only if P and R both show signal.
 ## Status
 
 - [x] Arm P harness + fake-mode plumbing test
-- [ ] Arm P dev-150 run
+- [x] Arm P dev-150 run (2026-08-19, base model, greedy, 0/1350 parse failures)
 - [ ] Arm R script tested on --smoke
 - [ ] Preregistered holdout runs
+
+### Arm P dev-150 result
+
+| arm | macro rho | 95% CI |
+|---|---:|---|
+| persona ensemble (8) | +0.1379 | [+0.054, +0.221] |
+| neutral, same groups | +0.1212 | [+0.036, +0.206] |
+
+Per-persona range +0.044 (small_biz_owner) to +0.172 (suburban_dad); the best
+single persona beats the ensemble point estimate. Read: persona ensembling
+gives at most a small lift that these marginal CIs cannot resolve, and the
+per-persona spread is within what noise allows at n=150. No claim survives
+this run.
+
+Harness gap found: only aggregates are saved, so the natural paired test
+(bootstrap the per-group ensemble-minus-neutral difference, same groups) is
+not computable post hoc. Next iteration must save per-group rhos and raw
+generations. Do not select the best dev persona and report it (multiple
+comparisons); if persona selection is wanted, select on dev, confirm on
+holdout once. Arm R (reward = the metric itself) remains the main bet.
